@@ -2248,9 +2248,10 @@ class Trainer:
         if delay_optimizer_creation:
             if use_accelerator_prepare:
                 self._fsdp_qlora_plugin_updates()
-                self.model = self.accelerator.prepare(self.model)
+                if self.args.process_index == 0: print("Model at ligne 2251 before delpayed:",self.model)
+                self.model = self.accelerator.prepare_model(self.model)
             self.create_optimizer_and_scheduler(num_training_steps=max_steps)
-            if self.args.process_index == 0: print("Model at ligne 2258 delpyed:",self.model)
+            if self.args.process_index == 0: print("Model at ligne 2254 after delpayed:",self.model)
 
         # prepare using `accelerator` prepare
         if use_accelerator_prepare:
@@ -2265,7 +2266,7 @@ class Trainer:
                 model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(
                     self.model, self.optimizer, self.lr_scheduler
                 )
-            if self.args.process_index == 0: print("Model at ligne 2268 prepared:",model)
+            if self.args.process_index == 0: print("Model at ligne 2269 prepared:",model)
         elif self.args.optim in [OptimizerNames.LOMO, OptimizerNames.ADALOMO]:
             # In this case we are in DDP + LOMO, which should be supported
             self.optimizer = self.accelerator.prepare(self.optimizer)

@@ -442,6 +442,7 @@ class Trainer:
             else:
                 raise RuntimeError("`Trainer` requires either a `model` or `model_init` argument")
         else:
+            if self.args.process_index == 0: print("Model at ligne 445:",model)
             if model_init is not None:
                 warnings.warn(
                     "`Trainer` requires either a `model` or `model_init` argument, but not both. `model_init` will"
@@ -573,6 +574,7 @@ class Trainer:
             self.args._n_gpu = 1
 
         # later use `self.model is self.model_wrapped` to check if it's wrapped or not
+        if self.args.process_index == 0: print("Model at ligne 577:",model)
         self.model_wrapped = model
         self.model = model
 
@@ -2034,11 +2036,11 @@ class Trainer:
         args = self.args
 
         self.is_in_train = True
-
+        if self.args.process_index == 0: print("Model at ligne 2039:",model)
         # Attach NEFTune hooks if necessary
         if self.neftune_noise_alpha is not None:
             self.model = self._activate_neftune(self.model)
-
+        if self.args.process_index == 0: print("Model at ligne 2043:",self.model)
         # do_train is not a reliable argument, as it might not be set and .train() still called, so
         # the following is a workaround:
         if (args.fp16_full_eval or args.bf16_full_eval) and not args.do_train and not self.is_model_parallel:
@@ -2115,6 +2117,7 @@ class Trainer:
     ):
         self.accelerator.free_memory()
         self._train_batch_size = batch_size
+        if self.args.process_index == 0: print("Model at ligne 2120:",self.model)
         if self.args.auto_find_batch_size:
             if self.state.train_batch_size != self._train_batch_size:
                 from accelerate.utils import release_memory
@@ -2192,7 +2195,7 @@ class Trainer:
                 )
             else:
                 debug_overflow = DebugUnderflowOverflow(self.model)  # noqa
-
+        if self.args.process_index == 0: print("Model at ligne 2198:",self.model)
         delay_optimizer_creation = is_sagemaker_mp_enabled() or self.is_fsdp_xla_enabled or self.is_fsdp_enabled
 
         # We need to reset the scheduler, as its parameters may be different on subsequent calls
@@ -2236,7 +2239,7 @@ class Trainer:
             self.model.gradient_checkpointing_enable(gradient_checkpointing_kwargs=args.gradient_checkpointing_kwargs)
 
         model = self._wrap_model(self.model_wrapped)
-
+        if self.args.process_index == 0: print("Model at ligne 2242 after wrap:"model)
         # as the model is wrapped, don't use `accelerator.prepare`
         # this is for unhandled cases such as
         # FSDP-XLA, SageMaker MP/DP, DataParallel, IPEX
@@ -2247,6 +2250,7 @@ class Trainer:
                 self._fsdp_qlora_plugin_updates()
                 self.model = self.accelerator.prepare(self.model)
             self.create_optimizer_and_scheduler(num_training_steps=max_steps)
+            if self.args.process_index == 0: print("Model at ligne 2258 delpyed:",self.model)
 
         # prepare using `accelerator` prepare
         if use_accelerator_prepare:
@@ -2261,6 +2265,7 @@ class Trainer:
                 model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(
                     self.model, self.optimizer, self.lr_scheduler
                 )
+            if self.args.process_index == 0: print("Model at ligne 2268 prepared:",model)
         elif self.args.optim in [OptimizerNames.LOMO, OptimizerNames.ADALOMO]:
             # In this case we are in DDP + LOMO, which should be supported
             self.optimizer = self.accelerator.prepare(self.optimizer)

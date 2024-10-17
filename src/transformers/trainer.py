@@ -2036,7 +2036,7 @@ class Trainer:
         args = self.args
 
         self.is_in_train = True
-        if self.args.process_index == 0: print("Model at ligne 2039:",model)
+        if self.args.process_index == 0: print("Model at ligne 2039:",self.model)
         # Attach NEFTune hooks if necessary
         if self.neftune_noise_alpha is not None:
             self.model = self._activate_neftune(self.model)

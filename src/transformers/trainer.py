@@ -2239,7 +2239,7 @@ class Trainer:
             self.model.gradient_checkpointing_enable(gradient_checkpointing_kwargs=args.gradient_checkpointing_kwargs)
 
         model = self._wrap_model(self.model_wrapped)
-        if self.args.process_index == 0: print("Model at ligne 2242 after wrap:"model)
+        if self.args.process_index == 0: print("Model at ligne 2242 after wrap:",model)
         # as the model is wrapped, don't use `accelerator.prepare`
         # this is for unhandled cases such as
         # FSDP-XLA, SageMaker MP/DP, DataParallel, IPEX

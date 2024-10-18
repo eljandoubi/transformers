@@ -2255,7 +2255,7 @@ class Trainer:
             if use_accelerator_prepare:
                 self._fsdp_qlora_plugin_updates()
                 if self.args.process_index == 0: print("Model at ligne 2251 before delpayed:",self.model)
-                self.model = self.accelerator.prepare_model(self.model)
+                self.model = self.accelerator.prepare(self.model)
             self.create_optimizer_and_scheduler(num_training_steps=max_steps)
             if self.args.process_index == 0: print("Model at ligne 2254 after delpayed:",self.model)
 
@@ -2378,7 +2378,7 @@ class Trainer:
 
         if args.eval_on_start:
             self._evaluate(trial, ignore_keys_for_eval, skip_scheduler=True)
-
+        if self.args.process_index == 0: print("Model at ligne 2381 at train loop:",model)
         total_batched_samples = 0
         for epoch in range(epochs_trained, num_train_epochs):
             epoch_dataloader = train_dataloader

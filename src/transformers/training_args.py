@@ -2204,6 +2204,8 @@ class TrainingArguments:
             use_deepspeed = accelerator_state_kwargs.pop("use_deepspeed", False)
             if use_deepspeed:
                 os.environ["ACCELERATE_USE_DEEPSPEED"] = "true"
+            print("distributed state at train_args_dataclass",self.distributed_state)
+            print("accelerator_state_kwargs of distributed state at train_args_dataclass", accelerator_state_kwargs)
             self.distributed_state = PartialState(**accelerator_state_kwargs)
             if use_deepspeed:
                 del os.environ["ACCELERATE_USE_DEEPSPEED"]

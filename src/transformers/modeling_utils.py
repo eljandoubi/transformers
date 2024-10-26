@@ -1530,7 +1530,7 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 torch_dtype=torch_dtype,
             )
 
-        if is_deepspeed_zero3_enabled():
+        if is_deepspeed_zero3_enabled() and False:
             import deepspeed
 
             logger.info("Detected DeepSpeed ZeRO-3: activating zero.init() for this model")

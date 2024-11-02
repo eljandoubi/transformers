@@ -2288,7 +2288,7 @@ class Trainer:
         # prepare using `accelerator` prepare
         if use_accelerator_prepare:
             self.model.train()
-            print_opt_parameter(m=self.model,opti=self.optimizer)
+            self.print_opt_parameter(m=self.model,opti=self.optimizer)
             if hasattr(self.lr_scheduler, "step"):
                 if self.use_apex:
                     model = self.accelerator.prepare(self.model)
@@ -2299,7 +2299,7 @@ class Trainer:
                 model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(
                     self.model, self.optimizer, self.lr_scheduler
                 )
-            print_opt_parameter(m=model,opti=self.optimizer)
+            self.print_opt_parameter(m=model,opti=self.optimizer,before=False)
         elif self.args.optim in [OptimizerNames.LOMO, OptimizerNames.ADALOMO]:
             # In this case we are in DDP + LOMO, which should be supported
             self.optimizer = self.accelerator.prepare(self.optimizer)
@@ -5102,18 +5102,24 @@ class Trainer:
                 pass
         return batch_samples, num_items_in_batch
 
-from torch.optim import Optimizer
-def print_opt_parameter(m:nn.Module, opti:Optimizer)->None:
-    param_model = list(m.parameters())
-    nb_model = len(param_model)
-    num_tensor = 0
-    opt_counter = 0
-    for param_group in opti.param_groups:
-        for param in param_group['params']:
-            opt_counter+=1
-            for tensor in param_model:
-                if tensor is param:
-                    num_tensor+=1
-    print("opt nb params",opt_counter)
-    print("id tensor",num_tensor)
-    print("the optimizer and the model have the same parameters:", num_tensor==nb_model==opt_counter)
+    from torch.optim import Optimizer
+    def print_opt_parameter(self,m:nn.Module, opti:Optimizer,before=True)->None:
+        if self.accelerator.is_main_process:
+            if before:
+                print("before accelerate preparation")
+            else:
+                print("after accelerate preparation")
+            param_model = list(m.parameters())
+            nb_model = len(param_model)
+            print("model nb params", nb_model)
+            num_tensor = 0
+            opt_counter = 0
+            for param_group in opti.param_groups:
+                for param in param_group['params']:
+                    opt_counter+=1
+                    for tensor in param_model:
+                        if tensor is param:
+                            num_tensor+=1
+            print("opt nb params",opt_counter)
+            print("id tensor",num_tensor)
+            print("the optimizer and the model have the same parameters:", num_tensor==nb_model==opt_counter)

@@ -5109,20 +5109,23 @@ class Trainer:
                 print("before accelerate preparation")
             else:
                 print("after accelerate preparation")
-            param_model = list(m.parameters())
-            nb_model = len(param_model)
+            opt_dtypes = set()
+            iters = zip(*m.named_parameters())
+            name_model = list(next(iters))
+            nb_model = len(name_model)
+            print("model parms dtype", set(map(lambda x: x.dtype,next(iters))))
             print("model nb params", nb_model)
-            print("model parms dtype", set(map(lambda x: x.dtype,param_model)))
             num_tensor = 0
             opt_counter = 0
-            opt_dtypes = set()
             for param_group in opti.param_groups:
                 for param in param_group['params']:
                     opt_counter+=1
                     opt_dtypes.add(param.dtype)
-                    for tensor in param_model:
+                    for name, tensor in m.named_parameters():
                         if tensor is param:
                             num_tensor+=1
+                            name_model.remove(name)
+            print("non-much:",name_model)
             print("opt nb params",opt_counter)
             print("opt parms dtype",opt_dtypes)
             print("id tensor",num_tensor)

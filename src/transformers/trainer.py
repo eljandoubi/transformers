@@ -5112,14 +5112,18 @@ class Trainer:
             param_model = list(m.parameters())
             nb_model = len(param_model)
             print("model nb params", nb_model)
+            print("model parms dtype", set(map(lambda x: x.dtype,param_model)))
             num_tensor = 0
             opt_counter = 0
+            opt_dtypes = set()
             for param_group in opti.param_groups:
                 for param in param_group['params']:
                     opt_counter+=1
+                    opt_dtypes.add(param.dtype)
                     for tensor in param_model:
                         if tensor is param:
                             num_tensor+=1
             print("opt nb params",opt_counter)
+            print("opt parms dtype",opt_dtypes)
             print("id tensor",num_tensor)
             print("the optimizer and the model have the same parameters:", num_tensor==nb_model==opt_counter)

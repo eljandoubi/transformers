@@ -2227,8 +2227,8 @@ class Trainer:
             else:
                 debug_overflow = DebugUnderflowOverflow(self.model)  # noqa
 
-        delay_optimizer_creation = is_sagemaker_mp_enabled() or self.is_fsdp_xla_enabled
-
+        delay_optimizer_creation = is_sagemaker_mp_enabled() or self.is_fsdp_xla_enabled or self.is_fsdp_enabled
+        self.print_opt_parameter(m=self.model,opti=self.optimizer)
         # We need to reset the scheduler, as its parameters may be different on subsequent calls
         if self._created_lr_scheduler:
             self.lr_scheduler = None
@@ -2288,7 +2288,6 @@ class Trainer:
         # prepare using `accelerator` prepare
         if use_accelerator_prepare:
             self.model.train()
-            self.print_opt_parameter(m=self.model,opti=self.optimizer)
             if hasattr(self.lr_scheduler, "step"):
                 if self.use_apex:
                     model = self.accelerator.prepare(self.model)
@@ -2299,11 +2298,10 @@ class Trainer:
                 model, self.optimizer, self.lr_scheduler = self.accelerator.prepare(
                     self.model, self.optimizer, self.lr_scheduler
                 )
-            self.print_opt_parameter(m=model,opti=self.optimizer,before=False)
         elif self.args.optim in [OptimizerNames.LOMO, OptimizerNames.ADALOMO]:
             # In this case we are in DDP + LOMO, which should be supported
             self.optimizer = self.accelerator.prepare(self.optimizer)
-
+        self.print_opt_parameter(m=model,opti=self.optimizer,before=False)
         if self.is_fsdp_enabled:
             self.model = self.model_wrapped = model
 

@@ -2227,8 +2227,7 @@ class Trainer:
             else:
                 debug_overflow = DebugUnderflowOverflow(self.model)  # noqa
 
-        delay_optimizer_creation = is_sagemaker_mp_enabled() or self.is_fsdp_xla_enabled or self.is_fsdp_enabled
-        #self.print_opt_parameter(m=self.model,opti=self.optimizer)
+        delay_optimizer_creation = is_sagemaker_mp_enabled() or self.is_fsdp_xla_enabled
         # We need to reset the scheduler, as its parameters may be different on subsequent calls
         if self._created_lr_scheduler:
             self.lr_scheduler = None
@@ -2284,7 +2283,7 @@ class Trainer:
             if use_accelerator_prepare:
                 self.model = self.accelerator.prepare(self.model)
             self.create_optimizer_and_scheduler(num_training_steps=max_steps)
-
+        self.print_opt_parameter(m=self.model,opti=self.optimizer)
         # prepare using `accelerator` prepare
         if use_accelerator_prepare:
             self.model.train()

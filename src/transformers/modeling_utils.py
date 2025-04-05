@@ -1910,10 +1910,8 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                     )
 
         # If current model is a base model, attach `base_model_pp_plan` from config
-        if self.base_model is self:
-            self._pp_plan = (
-                self.config.base_model_pp_plan.copy() if self.config.base_model_pp_plan is not None else None
-            )
+        if self.config.base_model_pp_plan is not None:
+            self._pp_plan = self.config.base_model_pp_plan.copy()
         # If the current model configuration has a tensor parallelism (TP) plan defined,
         # make a copy of it and assign it to self._tp_plan.
         if self.config.base_model_tp_plan is not None:

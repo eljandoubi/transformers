@@ -1909,17 +1909,24 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                         f" {self.__class__.__name__}"
                     )
 
-        # If current model is a base model, attach `base_model_tp_plan` and `base_model_pp_plan` from config
+        # If current model is a base model, attach `base_model_pp_plan` from config
         if self.base_model is self:
             self._pp_plan = (
                 self.config.base_model_pp_plan.copy() if self.config.base_model_pp_plan is not None else None
             )
-            self._tp_plan = self.config.base_model_tp_plan.copy() if self.config.base_model_tp_plan is not None else {}
-        else:
-            self._tp_plan = self._tp_plan or {}
+        # If the current model configuration has a tensor parallelism (TP) plan defined,
+        # make a copy of it and assign it to self._tp_plan.
+        if self.config.base_model_tp_plan is not None:
+            self._tp_plan = self.config.base_model_tp_plan.copy()
+        # If self._tp_plan is still None (i.e., not set from config),
+        # attempt to build it from the TP plans of the model's child modules.
+        elif self._tp_plan is None:
+            _tp_plan = {}
             for name, module in self.named_children():
                 if plan := getattr(module, "_tp_plan", None):
-                    self._tp_plan.update({f"{name}.{k}": v for k, v in plan.items()})
+                    _tp_plan.update({f"{name}.{k}": v for k, v in plan.items()})
+            if _tp_plan:
+                self._tp_plan = _tp_plan
 
         if self._tp_plan is not None and is_torch_greater_or_equal("2.3"):
             for _, v in self._tp_plan.items():
